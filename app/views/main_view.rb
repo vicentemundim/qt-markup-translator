@@ -1,13 +1,18 @@
 class MainView < ApplicationView
   use_builder
 
-  def add_new_file_page(file_id, translator_root_widget)
-    self.helper.open_file(file_id)
-    self.files_notebook.append_page(translator_root_widget, build_page_label(new_page_label))
+  def setup_widgets
+    self.files_notebook.clear
   end
 
-  def build_page_label(label)
-    build_widget(Gtk::Label, nil, nil, label)
+  def add_new_file_page(file_id, translator_root_widget)
+    self.helper.open_file(file_id)
+
+    add_page(translator_root_widget, new_page_label)
+  end
+
+  def add_page(page_widget, label)
+    self.files_notebook.add_tab(page_widget, label)
   end
 
   def new_page_label

@@ -4,7 +4,7 @@ class MainController < RuGUI::BaseMainController
   end
 
   def setup_controllers
-    #register_controller :translator_controller
+    register_controller :translator_controller
   end
 
   def setup_views
@@ -13,7 +13,7 @@ class MainController < RuGUI::BaseMainController
   end
 
   on :action_new, 'activated()' do
-    puts 'new'
+    self.translator_controller.new_translator
   end
 
   on :action_about, 'activated()' do

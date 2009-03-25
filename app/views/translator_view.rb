@@ -1,14 +1,8 @@
-require 'gtkmozembed'
-
 class TranslatorView < ApplicationView
-  root :translator_hpaned
+  root :translator_frame
   use_builder
 
-  def setup_widgets
-    build_widget(Gtk::MozEmbed, :browser, :browser_vbox)
-  end
-
-  def display_browser_preview(uri)
-    self.browser.location = uri
+  def display_browser_preview(path)
+    self.browser.html = File.read(path)
   end
 end

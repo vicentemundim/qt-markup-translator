@@ -10,6 +10,6 @@ class MainViewHelper < ApplicationViewHelper
   end
 
   def new_page_id
-    @view.files_notebook.n_pages + 1
+    @view.files_notebook.count + 1
   end
 end

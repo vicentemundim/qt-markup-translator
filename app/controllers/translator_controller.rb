@@ -12,8 +12,9 @@ class TranslatorController < ApplicationController
   def new_translator_view(file_id)
     register_view :translator_view, file_id
     view = view_for_file(file_id)
-    view.textview.buffer.signal_connect('insert-text') do |textbuffer, iter, text, length|
-      self.manager.save_temp_markup_file(file_id, textbuffer.text)
+
+    view.plain_text_edit.connect(SIGNAL('textChanged()')) do
+      self.manager.save_temp_markup_file(file_id, view.plain_text_edit.to_plain_text)
       display_browser_preview(file_id)
     end
   end
@@ -23,7 +24,7 @@ class TranslatorController < ApplicationController
   end
 
   def display_browser_preview(file_id)
-    uri = self.manager.markup_translator_file(file_id).temp_markup_file_uri
-    view_for_file(file_id).display_browser_preview(uri)
+    path = self.manager.markup_translator_file(file_id).temp_markup_file_path
+    view_for_file(file_id).display_browser_preview(path)
   end
 end

@@ -20,4 +20,8 @@ class Manager < RuGUI::BaseModel
   def markup_translator_file(file_id)
     self.opened_files[file_id]
   end
+
+  def has_opened_files?
+    not self.opened_files.blank?
+  end
 end

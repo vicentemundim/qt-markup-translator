@@ -4,7 +4,16 @@ class MarkupTranslatorFile < RuGUI::BaseModel
   observable_property :file_id
   observable_property :contents
   observable_property :markup_type, :initial_value => 'textile'
+  observable_property :filesystem_path
   observable_property :unsaved_changes, :boolean => true
+  observable_property :is_new, :boolean => true, :initial_value => true
+
+  def save
+    self.is_new = false
+    self.unsaved_changes = false
+
+    save_to_filesystem
+  end
 
   def save_temp_markup_file(contents)
     self.contents = contents
@@ -13,11 +22,15 @@ class MarkupTranslatorFile < RuGUI::BaseModel
   end
 
   def temp_markup_file_path
-    File.expand_path(File.join(RuGUI.root, 'app', 'resources', 'temp', "#{self.file_id}.#{self.markup_type}"))
+    File.expand_path(File.join(RuGUI.root, 'app', 'resources', 'temp', temp_markup_file_name))
   end
 
   def temp_markup_file_uri
     "file://#{temp_markup_file_path}"
+  end
+
+  def temp_markup_file_name
+    self.file_id.end_with?(self.markup_type) ? self.file_id : "#{self.file_id}.#{self.markup_type}"
   end
 
   def markup_contents
@@ -29,6 +42,10 @@ class MarkupTranslatorFile < RuGUI::BaseModel
   end
   
   private
+    def save_to_filesystem
+      save_as_file(self.filesystem_path)
+    end
+
     def save_as_file(path)
       File.open(path, 'w') do |file|
         file.write self.markup_contents

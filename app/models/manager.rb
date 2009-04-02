@@ -10,8 +10,7 @@ class Manager < RuGUI::BaseModel
 
   def new_file
     file_id = new_file_id
-    self.opened_files[file_id] = MarkupTranslatorFile.new(file_id)
-    file_id
+    self.opened_files[file_id] = MarkupTranslatorFile.new(:file_id => file_id)
   end
 
   def save_temp_markup_file(file_id, contents)

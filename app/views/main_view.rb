@@ -18,4 +18,11 @@ class MainView < ApplicationView
   def new_page_label
     "Unsaved-#{self.helper.new_page_id}"
   end
+
+  def contents_updated_file_label_for(file_id)
+    page_number = self.helper.page_index_for(file_id)
+    label = self.files_notebook.tab_text(page_number)
+    label << "*" unless label.end_with?("*")
+    self.files_notebook.set_tab_text(page_number, label)
+  end
 end

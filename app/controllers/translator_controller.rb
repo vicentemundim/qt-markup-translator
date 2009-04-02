@@ -4,9 +4,10 @@ class TranslatorController < ApplicationController
   end
 
   def new_translator
-    file_id = main_controller.manager.new_file
-    new_translator_view(file_id)
-    main_controller.main_view.add_new_file_page(file_id, view_for_file(file_id).root_widget)
+    new_file = main_controller.manager.new_file
+    register_model new_file, new_file.file_id
+    new_translator_view(new_file.file_id)
+    add_new_file_page_for(new_file.file_id)
   end
 
   def new_translator_view(file_id)
@@ -17,6 +18,14 @@ class TranslatorController < ApplicationController
       self.manager.save_temp_markup_file(file_id, view.plain_text_edit.to_plain_text)
       display_browser_preview(file_id)
     end
+  end
+
+  def add_new_file_page_for(file_id)
+    main_controller.main_view.add_new_file_page(file_id, view_for_file(file_id).root_widget)
+  end
+
+  def property_markup_translator_file_unsaved_changes_changed(model, new_value, old_value)
+    main_controller.main_view.contents_updated_file_label_for(model.file_id) if new_value
   end
 
   def view_for_file(file_id)

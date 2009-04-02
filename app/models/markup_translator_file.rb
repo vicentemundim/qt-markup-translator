@@ -1,18 +1,14 @@
 require 'RedCloth'
 
-class MarkupTranslatorFile
-  attr_accessor :file_id
-  attr_accessor :contents
-  attr_accessor :markup_type
-
-  def initialize(file_id, markup_type = 'textile')
-    self.file_id = file_id
-    self.markup_type = markup_type
-    self.contents = ''
-  end
+class MarkupTranslatorFile < RuGUI::BaseModel
+  observable_property :file_id
+  observable_property :contents
+  observable_property :markup_type, :initial_value => 'textile'
+  observable_property :unsaved_changes, :boolean => true
 
   def save_temp_markup_file(contents)
     self.contents = contents
+    self.unsaved_changes = true
     save_as_file(temp_markup_file_path)
   end
 

@@ -12,12 +12,12 @@ class TranslatorController < ApplicationController
 
   def new_translator_view(file_id)
     register_view :translator_view, file_id
-    view = view_for_file(file_id)
+    view_for_file(file_id).plain_text_edit.connect(SIGNAL('textChanged()')) { translator_contents_changed(file_id) }
+  end
 
-    view.plain_text_edit.connect(SIGNAL('textChanged()')) do
-      self.manager.save_temp_markup_file(file_id, view.plain_text_edit.to_plain_text)
+  def translator_contents_changed(file_id)
+    self.manager.save_temp_markup_file(file_id, view.plain_text_edit.to_plain_text)
       display_browser_preview(file_id)
-    end
   end
 
   def add_new_file_page_for(file_id)

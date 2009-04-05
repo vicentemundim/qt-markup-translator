@@ -4,10 +4,16 @@ class TranslatorController < ApplicationController
   end
 
   def new_translator
-    new_file = main_controller.manager.new_file
-    register_model new_file, new_file.file_id
-    new_translator_view(new_file.file_id)
-    add_new_file_page_for(new_file.file_id)
+    new_markup_translator_file
+    register_markup_translator_file
+    add_file_page(:new => true)
+  end
+
+  def open
+    prompt_for_file
+    if open_markup_translator_file
+      add_file_page
+    end
   end
 
   def save
@@ -32,12 +38,14 @@ class TranslatorController < ApplicationController
 
   def close
     close_file(current_markup_translator_file.file_id) if has_current_markup_translator_file?
+  rescue CanceledAction
+    # do nothing
   end
 
   def close_file(file_id, options = {})
     if options[:prompt_for_override]
       prompt_for_override_opened_file
-    elsif has_unsaved_changes?(file_id)
+    elsif has_unsaved_changes?(file_id) and not is_new?(file_id)
       prompt_for_save_changes(file_id)
     end
     
@@ -47,24 +55,23 @@ class TranslatorController < ApplicationController
 
   def new_translator_view(file_id)
     register_view :translator_view, file_id
-    connect_translator_contents_changed_signal_for(file_id)
   end
 
   def connect_translator_contents_changed_signal_for(file_id)
-    view_for_file(file_id).plain_text_edit.connect(SIGNAL('textChanged()')) { translator_contents_changed(file_id) }
+    view_for_file(file_id).plain_text_edit.connect(SIGNAL('textChanged()')) { update_browser_preview(file_id) }
   end
 
   def disconnect_translator_contents_changed_signal_for(file_id)
     view_for_file(file_id).plain_text_edit.disconnect(SIGNAL('textChanged()'))
   end
 
-  def translator_contents_changed(file_id)
+  def update_browser_preview(file_id)
     self.manager.save_temp_markup_file(file_id, view_for_file(file_id).plain_text_edit.to_plain_text)
     display_browser_preview(file_id)
   end
 
-  def add_new_file_page_for(file_id)
-    main_controller.main_view.add_new_file_page(file_id, view_for_file(file_id).root_widget)
+  def add_file_page_for(file_id, options = {})
+    main_controller.main_view.add_file_page(file_id, view_for_file(file_id).root_widget, options)
   end
 
   def property_markup_translator_file_unsaved_changes_changed(model, new_value, old_value)
@@ -89,15 +96,23 @@ class TranslatorController < ApplicationController
   end
 
   def has_unsaved_changes?(file_id)
-    self.manager.opened_files[file_id].unsaved_changes?
+    self.manager.markup_translator_file(file_id).unsaved_changes?
+  end
+
+  def is_new?(file_id)
+    self.manager.markup_translator_file(file_id).is_new?
   end
 
   def current_markup_translator_file
-    self.manager.opened_files[main_controller.main_view.current_file_id]
+    self.manager.markup_translator_file(main_controller.main_view.current_file_id)
   end
 
   def save_old_file_id
     @old_file_id = current_markup_translator_file.file_id
+  end
+
+  def prompt_for_file
+    @filesystem_path = main_controller.main_view.prompt_for_open_filesystem_path
   end
 
   def prompt_for_save_filesystem_path
@@ -169,7 +184,7 @@ class TranslatorController < ApplicationController
 
   def update_view_file_label
     main_controller.main_view.update_file_id(@old_file_id, @new_file_id)
-    main_controller.main_view.contents_updated_file_label_for(self.manager.opened_files[@new_file_id])
+    main_controller.main_view.contents_updated_file_label_for(self.manager.markup_translator_file(@new_file_id))
   end
 
   def close_markup_translator_file(file_id)
@@ -178,5 +193,29 @@ class TranslatorController < ApplicationController
 
   def close_file_view(file_id)
     main_controller.main_view.close_file_page(file_id)
+  end
+
+  def new_markup_translator_file
+    @file = main_controller.manager.new_file
+  end
+
+  def open_markup_translator_file
+    @file = main_controller.manager.open_file(@filesystem_path)
+  end
+
+  def register_markup_translator_file
+    register_model @file, @file.file_id
+  end
+
+  def add_file_page(options = {})
+    new_translator_view(@file.file_id)
+    add_file_page_for(@file.file_id, options)
+    update_file_page_contents_for(@file)
+    connect_translator_contents_changed_signal_for(@file.file_id)
+  end
+
+  def update_file_page_contents_for(file)
+    view_for_file(file.file_id).plain_text_edit.plain_text = file.contents
+    update_browser_preview(file.file_id)
   end
 end

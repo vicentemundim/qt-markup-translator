@@ -18,6 +18,19 @@ class Manager < RuGUI::BaseModel
     self.opened_files[file_id] = MarkupTranslatorFile.new(:file_id => file_id)
   end
 
+  def open_file(filesystem_path)
+    unless filesystem_path.blank? or not File.file?(filesystem_path)
+      file = MarkupTranslatorFile.new(
+        :file_id => File.basename(filesystem_path, '.textile'),
+        :filesystem_path => filesystem_path,
+        :contents => File.read(filesystem_path)
+      )
+
+      file.is_new = false
+      self.opened_files[file.file_id] = file
+    end
+  end
+
   def close_file(file_id)
     self.opened_files.delete(file_id)
   end

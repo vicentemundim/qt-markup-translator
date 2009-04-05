@@ -5,10 +5,11 @@ class MainView < ApplicationView
     self.files_notebook.clear
   end
 
-  def add_new_file_page(file_id, translator_root_widget)
+  def add_file_page(file_id, translator_root_widget, options = {})
     self.helper.open_file(file_id)
 
-    add_page(translator_root_widget, new_page_label)
+    label = options[:new] ? new_page_label : file_id
+    add_page(translator_root_widget, label)
     focus_page(file_id)
   end
 
@@ -25,7 +26,6 @@ class MainView < ApplicationView
     self.helper.close_file(file_id)
     tab_page = self.files_notebook.widget(page_index)
     self.files_notebook.remove_tab(page_index)
-    tab_page.dispose
   end
 
   def new_page_label
@@ -57,6 +57,15 @@ class MainView < ApplicationView
 
   def update_file_id(old_file_id, new_file_id)
     self.helper.update_file_id(old_file_id, new_file_id)
+  end
+
+  def prompt_for_open_filesystem_path
+    Qt::FileDialog.get_open_file_name(
+      self.main_window,
+      'Open File',
+      nil,
+      "Markup (*.textile);; All (*)"
+    )
   end
 
   def prompt_for_save_filesystem_path(current_path)

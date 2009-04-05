@@ -16,6 +16,10 @@ class MainController < RuGUI::BaseMainController
     self.translator_controller.new_translator
   end
 
+  on :action_open, 'activated()' do
+    self.translator_controller.open
+  end
+
   on :action_save, 'activated()' do
     self.translator_controller.save
   end

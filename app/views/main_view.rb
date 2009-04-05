@@ -9,10 +9,15 @@ class MainView < ApplicationView
     self.helper.open_file(file_id)
 
     add_page(translator_root_widget, new_page_label)
+    focus_page(file_id)
   end
 
   def add_page(page_widget, label)
     self.files_notebook.add_tab(page_widget, label)
+  end
+
+  def focus_page(file_id)
+    self.files_notebook.current_index = self.helper.page_index_for(file_id)
   end
 
   def close_file_page(file_id)

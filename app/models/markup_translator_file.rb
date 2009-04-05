@@ -18,7 +18,7 @@ class MarkupTranslatorFile < RuGUI::BaseModel
   def save_temp_markup_file(contents)
     self.contents = contents
     self.unsaved_changes = true
-    save_as_file(temp_markup_file_path)
+    save_as_file(temp_markup_file_path, self.markup_contents)
   end
 
   def temp_markup_file_path
@@ -43,13 +43,13 @@ class MarkupTranslatorFile < RuGUI::BaseModel
   
   private
     def save_to_filesystem
-      save_as_file(self.filesystem_path)
+      save_as_file(self.filesystem_path, self.contents)
     end
 
-    def save_as_file(path)
+    def save_as_file(path, contents)
       File.open(path, 'w') do |file|
-        file.write self.markup_contents
-      end
+        file.write contents
+      end unless path.nil?
     end
 
     def markup_contents_method

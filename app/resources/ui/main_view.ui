@@ -77,10 +77,16 @@
    <property name="text" >
     <string>&amp;Save</string>
    </property>
+   <property name="shortcut" >
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="action_save_as" >
    <property name="text" >
     <string>Save as...</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="action_quit" >

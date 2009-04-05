@@ -8,6 +8,11 @@ class Manager < RuGUI::BaseModel
     "new_file_#{self.last_new_page_id}"
   end
 
+  def update_opened_file_id(old_file_id, new_file_id)
+    self.opened_files[old_file_id].file_id = new_file_id
+    self.opened_files[new_file_id] = self.opened_files.delete(old_file_id)
+  end
+
   def new_file
     file_id = new_file_id
     self.opened_files[file_id] = MarkupTranslatorFile.new(:file_id => file_id)

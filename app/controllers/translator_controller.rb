@@ -10,25 +10,22 @@ class TranslatorController < ApplicationController
     add_new_file_page_for(new_file.file_id)
   end
 
-  def save_current_translator
+  def save
     if has_current_markup_translator_file?
       if current_markup_translator_file.is_new?
-        save_current_translator_as
+        save_as
       else
-        current_markup_translator_file.save
+        save_current_markup_translator_file
       end
     end
   end
 
-  def save_current_translator_as
+  def save_as
     if has_current_markup_translator_file?
-      old_file_id = current_markup_translator_file.file_id
-      filesystem_path = Qt::FileDialog.get_save_file_name
-      unless filesystem_path.blank?
-        current_markup_translator_file.filesystem_path = filesystem_path
-        current_markup_translator_file.save
-        new_file_id = File.basename(filesystem_path)
-        update_file_id(old_file_id, new_file_id) unless old_file_id == new_file_id
+      save_old_file_id
+      if prompt_for_save_filesystem_path
+        save_current_markup_translator_file
+        update_references_for_file
       end
     end
   end
@@ -76,13 +73,50 @@ class TranslatorController < ApplicationController
     self.manager.opened_files[main_controller.main_view.current_file_id]
   end
 
-  def update_file_id(old_file_id, new_file_id)
-    disconnect_translator_contents_changed_signal_for(old_file_id)
-    self.manager.opened_files[old_file_id].file_id = new_file_id
-    self.manager.opened_files[new_file_id] = self.manager.opened_files.delete(old_file_id)
-    self.views[new_file_id.to_sym] = self.views.delete(old_file_id.to_sym)
-    connect_translator_contents_changed_signal_for(new_file_id)
-    main_controller.main_view.update_file_id(old_file_id, new_file_id)
-    main_controller.main_view.contents_updated_file_label_for(self.manager.opened_files[new_file_id])
+  def save_old_file_id
+    @old_file_id = current_markup_translator_file.file_id
+  end
+
+  def prompt_for_save_filesystem_path
+    @filesystem_path = main_controller.main_view.prompt_for_save_filesystem_path(current_markup_translator_file.filesystem_path)
+
+    unless @filesystem_path.blank?
+      @filesystem_path << ".#{current_markup_translator_file.markup_type}" unless @filesystem_path.end_with?(".#{current_markup_translator_file.markup_type}")
+      current_markup_translator_file.filesystem_path = @filesystem_path
+    end
+  end
+
+  def save_current_markup_translator_file
+    current_markup_translator_file.save
+  end
+
+  def update_references_for_file
+    @new_file_id = File.basename(@filesystem_path)
+    disconnect_file_signals
+    update_opened_file_id
+    update_file_view_id
+    connect_file_signals
+    update_view_file_label
+  end
+
+  def update_opened_file_id
+    self.manager.update_opened_file_id(@old_file_id, @new_file_id)
+  end
+
+  def update_file_view_id
+    self.views[@new_file_id.to_sym] = self.views.delete(@old_file_id.to_sym)
+  end
+
+  def disconnect_file_signals
+    disconnect_translator_contents_changed_signal_for(@old_file_id)
+  end
+
+  def connect_file_signals
+    connect_translator_contents_changed_signal_for(@new_file_id)
+  end
+
+  def update_view_file_label
+    main_controller.main_view.update_file_id(@old_file_id, @new_file_id)
+    main_controller.main_view.contents_updated_file_label_for(self.manager.opened_files[@new_file_id])
   end
 end

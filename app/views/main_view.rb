@@ -45,4 +45,13 @@ class MainView < ApplicationView
   def update_file_id(old_file_id, new_file_id)
     self.helper.update_file_id(old_file_id, new_file_id)
   end
+
+  def prompt_for_save_filesystem_path(current_path)
+    Qt::FileDialog.get_save_file_name(
+      self.main_window,
+      'Save File',
+      current_path,
+      "Markup (*.textile);; All (*)"
+    )
+  end
 end

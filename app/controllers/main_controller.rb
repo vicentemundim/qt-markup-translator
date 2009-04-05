@@ -24,6 +24,10 @@ class MainController < RuGUI::BaseMainController
     self.translator_controller.save_as
   end
 
+  on :action_close, 'activated()' do
+    self.translator_controller.close
+  end
+
   on :action_about, 'activated()' do
     self.about_view.about_dialog.show
   end

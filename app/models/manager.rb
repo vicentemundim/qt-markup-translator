@@ -18,12 +18,20 @@ class Manager < RuGUI::BaseModel
     self.opened_files[file_id] = MarkupTranslatorFile.new(:file_id => file_id)
   end
 
+  def close_file(file_id)
+    self.opened_files.delete(file_id)
+  end
+
   def save_temp_markup_file(file_id, contents)
     markup_translator_file(file_id).save_temp_markup_file(contents)
   end
 
   def markup_translator_file(file_id)
     self.opened_files[file_id]
+  end
+
+  def has_opened_file?(file_id)
+    self.opened_files.has_key?(file_id)
   end
 
   def has_opened_files?

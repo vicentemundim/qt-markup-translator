@@ -9,6 +9,15 @@ class MainViewHelper < ApplicationViewHelper
     self.opened_files[file_id] = {:page_number => new_page_number}
   end
 
+  def close_file(file_id)
+    closed_file_options = self.opened_files.delete(file_id)
+    self.opened_files.each do |file_id, file_options|
+      if file_options[:page_number] > closed_file_options[:page_number]
+        file_options[:page_number] -= 1
+      end
+    end
+  end
+
   def page_number_for(file_id)
     self.opened_files[file_id][:page_number] unless self.opened_files[file_id].blank?
   end

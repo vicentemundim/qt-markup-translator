@@ -15,6 +15,14 @@ class MainView < ApplicationView
     self.files_notebook.add_tab(page_widget, label)
   end
 
+  def close_file_page(file_id)
+    page_index = self.helper.page_index_for(file_id)
+    self.helper.close_file(file_id)
+    tab_page = self.files_notebook.widget(page_index)
+    self.files_notebook.remove_tab(page_index)
+    tab_page.dispose
+  end
+
   def new_page_label
     "Unsaved-#{self.helper.new_page_number}"
   end
@@ -53,5 +61,25 @@ class MainView < ApplicationView
       current_path,
       "Markup (*.textile);; All (*)"
     )
+  end
+
+  def prompt_for_save_changes(file_id)
+    message_box = Qt::MessageBox.new
+    message_box.text = "<h1>Save changes to #{file_id}?</h1>"
+    message_box.informative_text = "You have unsaved changes in your documents, choose whether to save it."
+    message_box.standard_buttons = Qt::MessageBox::Save | Qt::MessageBox::Cancel | Qt::MessageBox::Discard
+    message_box.default_button = Qt::MessageBox::Save
+    message_box.icon = Qt::MessageBox::Question
+    message_box.exec
+  end
+
+  def prompt_for_override_opened_file
+    message_box = Qt::MessageBox.new
+    message_box.text = "<h1>Override opened file?</h1>"
+    message_box.informative_text = "This will close the other file and override it with the new one, are you sure?"
+    message_box.standard_buttons = Qt::MessageBox::Yes | Qt::MessageBox::No
+    message_box.default_button = Qt::MessageBox::No
+    message_box.icon = Qt::MessageBox::Question
+    message_box.exec
   end
 end

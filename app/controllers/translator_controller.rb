@@ -30,6 +30,21 @@ class TranslatorController < ApplicationController
     end
   end
 
+  def close
+    close_file(current_markup_translator_file.file_id) if has_current_markup_translator_file?
+  end
+
+  def close_file(file_id, options = {})
+    if options[:prompt_for_override]
+      prompt_for_override_opened_file
+    elsif has_unsaved_changes?(file_id)
+      prompt_for_save_changes(file_id)
+    end
+    
+    close_markup_translator_file(file_id)
+    close_file_view(file_id)
+  end
+
   def new_translator_view(file_id)
     register_view :translator_view, file_id
     connect_translator_contents_changed_signal_for(file_id)
@@ -69,6 +84,14 @@ class TranslatorController < ApplicationController
     self.manager.has_opened_files?
   end
 
+  def has_same_file_opened?(file_id)
+    self.manager.has_opened_file?(file_id)
+  end
+
+  def has_unsaved_changes?(file_id)
+    self.manager.opened_files[file_id].unsaved_changes?
+  end
+
   def current_markup_translator_file
     self.manager.opened_files[main_controller.main_view.current_file_id]
   end
@@ -82,12 +105,41 @@ class TranslatorController < ApplicationController
 
     unless @filesystem_path.blank?
       @filesystem_path << ".#{current_markup_translator_file.markup_type}" unless @filesystem_path.end_with?(".#{current_markup_translator_file.markup_type}")
+      close_file(File.basename(@filesystem_path), :prompt_for_override => true) if has_same_file_opened?(File.basename(@filesystem_path))
       current_markup_translator_file.filesystem_path = @filesystem_path
+    end
+  rescue CanceledAction
+    false
+  end
+
+  def prompt_for_save_changes(file_id)
+    result = main_controller.main_view.prompt_for_save_changes(file_id)
+    case result
+    when Qt::MessageBox::Save
+      save_markup_translator_file(file_id)
+    when Qt::MessageBox::Cancel
+      raise CanceledAction.new("Canceled Action")
+    when Qt::MessageBox::Discard
+      # do nothing
     end
   end
 
+  def prompt_for_override_opened_file
+    result = main_controller.main_view.prompt_for_override_opened_file
+    case result
+    when Qt::MessageBox::Yes
+      # continue
+    when Qt::MessageBox::No
+      raise CanceledAction.new("Canceled Action")
+    end
+  end
+
+  def save_markup_translator_file(file_id)
+    self.manager.opened_files[file_id].save
+  end
+
   def save_current_markup_translator_file
-    current_markup_translator_file.save
+    save_markup_translator_file(current_markup_translator_file.file_id)
   end
 
   def update_references_for_file
@@ -118,5 +170,13 @@ class TranslatorController < ApplicationController
   def update_view_file_label
     main_controller.main_view.update_file_id(@old_file_id, @new_file_id)
     main_controller.main_view.contents_updated_file_label_for(self.manager.opened_files[@new_file_id])
+  end
+
+  def close_markup_translator_file(file_id)
+    self.manager.close_file(file_id)
+  end
+
+  def close_file_view(file_id)
+    main_controller.main_view.close_file_page(file_id)
   end
 end

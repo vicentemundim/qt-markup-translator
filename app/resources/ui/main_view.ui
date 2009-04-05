@@ -42,6 +42,7 @@
     <addaction name="action_open" />
     <addaction name="action_save" />
     <addaction name="action_save_as" />
+    <addaction name="action_close" />
     <addaction name="separator" />
     <addaction name="action_quit" />
    </widget>
@@ -95,6 +96,14 @@
    </property>
    <property name="shortcut" >
     <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="action_close" >
+   <property name="text" >
+    <string>Close</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+W</string>
    </property>
   </action>
  </widget>
